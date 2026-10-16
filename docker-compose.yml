@@ -20,9 +20,7 @@ services:
     command: ["npm", "run", "migrate"]
     environment:
       NODE_ENV: development
-      API_TOKEN: ${API_TOKEN:?Set API_TOKEN in .env}
       DATABASE_URL: postgresql://reza:${POSTGRES_PASSWORD}@database:5432/reza
-      ALLOWED_DOMAINS: example.com
     depends_on:
       database:
         condition: service_healthy

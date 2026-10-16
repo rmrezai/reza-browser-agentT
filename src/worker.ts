@@ -1,5 +1,5 @@
 import { setTimeout as delay } from "node:timers/promises";
-import { chromium, type Browser } from "playwright";
+import { chromium, type Browser, type BrowserContext } from "playwright";
 import { loadConfig } from "./config.js";
 import { createPool, createStore } from "./database.js";
 import { startEgressProxy } from "./network-proxy.js";
@@ -14,18 +14,20 @@ async function executeTask(
   store: WorkerTaskStore,
   allowedDomains: Set<string>,
 ): Promise<void> {
-  const context = await browser.newContext({
-    acceptDownloads: false,
-    permissions: [],
-    serviceWorkers: "block",
-    viewport: { width: 1280, height: 800 },
-  });
+  let context: BrowserContext | undefined;
   let cancelled = false;
   let checkingCancellation = false;
-  let stage = "new-page";
+  let stage = "new-context";
 
   try {
-    const page = await context.newPage();
+    context = await browser.newContext({
+      acceptDownloads: false,
+      permissions: [],
+      serviceWorkers: "block",
+      viewport: { width: 1280, height: 800 },
+    });
+    const taskContext = context;
+    const page = await taskContext.newPage();
     stage = "route-setup";
     await page.route("**/*", async (route) => {
       try {
@@ -50,12 +52,12 @@ async function executeTask(
         .then((requested) => {
           if (requested) {
             cancelled = true;
-            return context.close();
+            return taskContext.close();
           }
         })
         .catch(() => {
           cancelled = true;
-          return context.close();
+          return taskContext.close();
         })
         .finally(() => {
           checkingCancellation = false;
@@ -97,7 +99,7 @@ async function executeTask(
       (await store.isCancellationRequested(task.id).catch(() => true));
     await store.finishTask(task.id, wasCancelled ? "cancelled" : "failed");
   } finally {
-    await context.close().catch(() => undefined);
+    if (context) await context.close().catch(() => undefined);
   }
 }
 

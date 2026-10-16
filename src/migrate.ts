@@ -1,7 +1,7 @@
-import { loadConfig } from "./config.js";
+import { loadDatabaseUrl } from "./config.js";
 import { createPool, migrate } from "./database.js";
 
-const pool = createPool(loadConfig());
+const pool = createPool({ databaseUrl: loadDatabaseUrl() });
 try {
   await migrate(pool);
 } finally {

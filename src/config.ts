@@ -6,6 +6,11 @@ export interface AppConfig {
   databaseUrl: string;
 }
 
+export function loadDatabaseUrl(env: NodeJS.ProcessEnv = process.env): string {
+  if (!env.DATABASE_URL) throw new Error("DATABASE_URL is required");
+  return env.DATABASE_URL;
+}
+
 export function loadConfig(
   env: NodeJS.ProcessEnv = process.env,
 ): AppConfig {
@@ -13,10 +18,9 @@ export function loadConfig(
   if (!apiToken || Buffer.byteLength(apiToken) < 32) {
     throw new Error("API_TOKEN must contain at least 32 bytes");
   }
-  if (!env.DATABASE_URL) throw new Error("DATABASE_URL is required");
   return {
     apiToken,
     allowedDomains: parseDomainAllowlist(env.ALLOWED_DOMAINS),
-    databaseUrl: env.DATABASE_URL,
+    databaseUrl: loadDatabaseUrl(env),
   };
 }

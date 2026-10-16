@@ -6,7 +6,7 @@ import { PostgresTaskStore } from "./store.js";
 
 const { Pool } = pg;
 
-export function createPool(config: AppConfig): pg.Pool {
+export function createPool(config: Pick<AppConfig, "databaseUrl">): pg.Pool {
   return new Pool({
     connectionString: config.databaseUrl,
     ssl:
