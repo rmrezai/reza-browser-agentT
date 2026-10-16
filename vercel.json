@@ -1,0 +1,10 @@
+{
+  "installCommand": "npm ci --legacy-peer-deps",
+  "buildCommand": "npm run build",
+  "functions": {
+    "api/**/*.ts": {
+      "memory": 1024,
+      "maxDuration": 10
+    }
+  }
+}
